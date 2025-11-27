@@ -1,79 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { GitCommit, RefreshCcw, Settings, X } from 'lucide-react';
+import useEnigmaMachine from '../hooks/useEnigmaMachine';
 
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-const ROTOR_CONFIGS = {
-  I: { wiring: 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', notch: 'Q' },
-  II: { wiring: 'AJDKSIRUXBLHWTMCQGZNPYFVOE', notch: 'E' },
-  III: { wiring: 'BDFHJLCPRTXVZNYEIWGAKMUSQO', notch: 'V' },
-  IV: { wiring: 'ESOVPZJAYQUIRHXLNFTGKDCMWB', notch: 'J' },
-  V: { wiring: 'VZBRGITYUPSDNHLXAWMJQOFECK', notch: 'Z' },
-};
-
-const REFLECTORS = {
-  B: 'YRUHQSLDPXNGOKMIEBFZCWVJAT',
-  C: 'FVPJIAOYEDRZXWGCTKUQSBNMHL',
-};
-
-const toInt = (c) => c.charCodeAt(0) - 65;
 const toChar = (i) => String.fromCharCode((i + 26) % 26 + 65);
-
-class Rotor {
-  constructor(name, wiring, notch, ringSetting = 0, position = 0) {
-    this.name = name;
-    this.wiring = wiring.split('').map(toInt);
-    this.notch = toInt(notch);
-    this.ringSetting = ringSetting;
-    this.position = position;
-    this.inverseWiring = new Array(26);
-    this.wiring.forEach((out, inp) => {
-      this.inverseWiring[out] = inp;
-    });
-  }
-
-  step() {
-    this.position = (this.position + 1) % 26;
-  }
-
-  isAtNotch() {
-    return this.position === this.notch;
-  }
-
-  forward(signal) {
-    const offset = this.position - this.ringSetting;
-    const entry = (signal + offset + 26) % 26;
-    const encoded = this.wiring[entry];
-    return (encoded - offset + 26) % 26;
-  }
-
-  backward(signal) {
-    const offset = this.position - this.ringSetting;
-    const entry = (signal + offset + 26) % 26;
-    const encoded = this.inverseWiring[entry];
-    return (encoded - offset + 26) % 26;
-  }
-}
-
-class Plugboard {
-  constructor(pairs) {
-    this.map = {};
-    ALPHABET.split('').forEach((l) => {
-      this.map[toInt(l)] = toInt(l);
-    });
-
-    pairs.forEach(([a, b]) => {
-      const ia = toInt(a);
-      const ib = toInt(b);
-      this.map[ia] = ib;
-      this.map[ib] = ia;
-    });
-  }
-
-  process(signal) {
-    return this.map[signal];
-  }
-}
 
 const Key = ({ char, active, variant = 'keyboard', onClick, onMouseDown, onMouseUp }) => {
   const isLamp = variant === 'lamp';
@@ -180,83 +111,33 @@ const Socket = ({ char, isConnected, isSelected, color, onClick }) => (
 );
 
 export default function EnigmaMachine() {
-  const [rotorTypes, setRotorTypes] = useState(['I', 'II', 'III']);
-  const [ringSettings, setRingSettings] = useState([0, 0, 0]);
-  const [reflectorType, setReflectorType] = useState('B');
-  const [plugs, setPlugs] = useState({});
+  const {
+    rotorTypes,
+    ringSettings,
+    positions,
+    reflectorType,
+    plugboardPairs,
+    encipher,
+    updateRotorPositions,
+    updateRotorTypes,
+    updateRingSettings,
+    updateReflector,
+    updatePlugboard,
+    reset,
+  } = useEnigmaMachine();
 
-  const [positions, setPositions] = useState([0, 0, 0]);
   const [litLamp, setLitLamp] = useState(null);
   const [pressedKey, setPressedKey] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [outputLog, setOutputLog] = useState('');
   const [selectedPlug, setSelectedPlug] = useState(null);
+  const [plugs, setPlugs] = useState({});
 
   const handleKeyPress = (char) => {
     if (pressedKey) return;
     setPressedKey(char);
 
-    const rLeft = new Rotor(
-      rotorTypes[0],
-      ROTOR_CONFIGS[rotorTypes[0]].wiring,
-      ROTOR_CONFIGS[rotorTypes[0]].notch,
-      ringSettings[0],
-      positions[0],
-    );
-    const rMid = new Rotor(
-      rotorTypes[1],
-      ROTOR_CONFIGS[rotorTypes[1]].wiring,
-      ROTOR_CONFIGS[rotorTypes[1]].notch,
-      ringSettings[1],
-      positions[1],
-    );
-    const rRight = new Rotor(
-      rotorTypes[2],
-      ROTOR_CONFIGS[rotorTypes[2]].wiring,
-      ROTOR_CONFIGS[rotorTypes[2]].notch,
-      ringSettings[2],
-      positions[2],
-    );
-
-    const plugPairs = [];
-    const processed = new Set();
-    Object.keys(plugs).forEach((k) => {
-      if (!processed.has(k)) {
-        plugPairs.push([k, plugs[k]]);
-        processed.add(k);
-        processed.add(plugs[k]);
-      }
-    });
-    const plugboard = new Plugboard(plugPairs);
-
-    const midAtNotch = rMid.isAtNotch();
-    const rightAtNotch = rRight.isAtNotch();
-
-    if (midAtNotch) {
-      rLeft.step();
-      rMid.step();
-    } else if (rightAtNotch) {
-      rMid.step();
-    }
-    rRight.step();
-
-    setPositions([rLeft.position, rMid.position, rRight.position]);
-
-    let signal = toInt(char);
-    signal = plugboard.process(signal);
-    signal = rRight.forward(signal);
-    signal = rMid.forward(signal);
-    signal = rLeft.forward(signal);
-
-    const refWiring = REFLECTORS[reflectorType].split('').map(toInt);
-    signal = refWiring[signal];
-
-    signal = rLeft.backward(signal);
-    signal = rMid.backward(signal);
-    signal = rRight.backward(signal);
-    signal = plugboard.process(signal);
-
-    const outputChar = toChar(signal);
+    const outputChar = encipher(char);
     setLitLamp(outputChar);
 
     setOutputLog((prev) => {
@@ -305,15 +186,26 @@ export default function EnigmaMachine() {
       delete newPlugs[char];
       delete newPlugs[partner];
       setPlugs(newPlugs);
+
+      const newPairs = Object.entries(newPlugs)
+        .filter(([k, v]) => k < v)
+        .map(([k, v]) => [k, v]);
+      updatePlugboard(newPairs);
       return;
     }
 
     if (selectedPlug) {
-      setPlugs((prev) => ({
-        ...prev,
+      const newPlugs = {
+        ...plugs,
         [selectedPlug]: char,
         [char]: selectedPlug,
-      }));
+      };
+      setPlugs(newPlugs);
+
+      const newPairs = Object.entries(newPlugs)
+        .filter(([k, v]) => k < v)
+        .map(([k, v]) => [k, v]);
+      updatePlugboard(newPairs);
       setSelectedPlug(null);
     } else {
       setSelectedPlug(char);
@@ -348,7 +240,12 @@ export default function EnigmaMachine() {
   const adjustPosition = (idx, dir) => {
     const newPos = [...positions];
     newPos[idx] = (newPos[idx] + dir + 26) % 26;
-    setPositions(newPos);
+    updateRotorPositions(newPos);
+  };
+
+  const handleReset = () => {
+    reset();
+    setOutputLog('');
   };
 
   return (
@@ -371,10 +268,7 @@ export default function EnigmaMachine() {
 
         <div className="flex gap-2">
           <button
-            onClick={() => {
-              setPositions([0, 0, 0]);
-              setOutputLog('');
-            }}
+            onClick={handleReset}
             className="p-2 bg-[#2a221b] rounded border border-[#4a3b2a] hover:bg-[#3a3026] text-[#d4b483]"
             title="Reset Machine"
           >
@@ -434,7 +328,6 @@ export default function EnigmaMachine() {
           </div>
 
           <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-50 overflow-visible z-20">
-            {/* Placeholder overlay for potential wire drawing */}
           </svg>
 
           <div className="text-center mt-4 text-xs text-neutral-500">
@@ -469,7 +362,7 @@ export default function EnigmaMachine() {
               <label className="block text-xs uppercase tracking-wider mb-2 opacity-70">Reflector (Umkehrwalze)</label>
               <select
                 value={reflectorType}
-                onChange={(e) => setReflectorType(e.target.value)}
+                onChange={(e) => updateReflector(e.target.value)}
                 className="w-full bg-[#1a1510] border border-[#4a3b2a] rounded p-2 text-white outline-none focus:border-[#d4b483]"
               >
                 <option value="B">Reflector B (Standard)</option>
@@ -487,11 +380,11 @@ export default function EnigmaMachine() {
                     onChange={(e) => {
                       const newTypes = [...rotorTypes];
                       newTypes[idx] = e.target.value;
-                      setRotorTypes(newTypes);
+                      updateRotorTypes(newTypes);
                     }}
                     className="bg-[#1a1510] border border-[#4a3b2a] rounded p-1 text-center text-white text-sm outline-none"
                   >
-                    {Object.keys(ROTOR_CONFIGS).map((t) => (
+                    {['I', 'II', 'III', 'IV', 'V'].map((t) => (
                       <option key={t} value={t}>
                         {t}
                       </option>
@@ -508,7 +401,7 @@ export default function EnigmaMachine() {
                       onChange={(e) => {
                         const newRings = [...ringSettings];
                         newRings[idx] = parseInt(e.target.value, 10) || 0;
-                        setRingSettings(newRings);
+                        updateRingSettings(newRings);
                       }}
                       className="w-8 bg-transparent text-right text-sm py-1 outline-none"
                     />
