@@ -6,6 +6,7 @@ import Key3D from './3d/Key3D';
 import Lamp3D from './3d/Lamp3D';
 import Table3D from './3d/Table3D';
 import SecretDocument3D from './3d/SecretDocument3D';
+import Ashtray3D from './3d/Ashtray3D';
 import useEnigmaMachine from '../hooks/useEnigmaMachine';
 
 const ROW_1 = 'QWERTZUIO'.split('');
@@ -33,6 +34,7 @@ export default function Enigma3D({ onClose }) {
   } = useEnigmaMachine();
 
   const [litLamp, setLitLamp] = useState(null);
+  const [isLampOn, setIsLampOn] = useState(true);
   const [pressedKey, setPressedKey] = useState(null);
   const [inputText, setInputText] = useState('');
   const [decipheredText, setDecipheredText] = useState('');
@@ -113,6 +115,20 @@ export default function Enigma3D({ onClose }) {
             <cylinderGeometry args={[1.5, 1.8, 0.4, 32]} />
             <meshStandardMaterial color="#2c3e50" roughness={0.5} metalness={0.5} />
           </mesh>
+          {/* Switch */}
+          <mesh 
+            position={[0.8, 0.5, 0]} 
+            rotation={[0, 0, 0.2]} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLampOn(!isLampOn);
+            }}
+            onPointerOver={() => document.body.style.cursor = 'pointer'}
+            onPointerOut={() => document.body.style.cursor = 'auto'}
+          >
+            <boxGeometry args={[0.3, 0.3, 0.3]} />
+            <meshStandardMaterial color={isLampOn ? "#4caf50" : "#f44336"} />
+          </mesh>
           {/* Stem */}
           <mesh position={[0, 3, 0]} rotation={[0.2, 0, 0]} castShadow>
             <cylinderGeometry args={[0.15, 0.15, 6, 16]} />
@@ -126,20 +142,31 @@ export default function Enigma3D({ onClose }) {
              </mesh>
              {/* Bulb */}
              <mesh position={[0, -0.5, 0]}>
-               <sphereGeometry args={[0.5, 16, 16]} />
-               <meshStandardMaterial emissive="#ffeb3b" emissiveIntensity={2} color="#fff" />
+                <sphereGeometry args={[0.5, 16, 16]} />
+                <meshStandardMaterial 
+                  emissive="#ffeb3b" 
+                  emissiveIntensity={isLampOn ? 2 : 0} 
+                  color={isLampOn ? "#fff" : "#555"} 
+                />
              </mesh>
              {/* The actual light source */}
              <SpotLight
                 position={[0, 0, 0]}
                 target-position={[0, -10, 0]}
-                angle={0.6}
-                penumbra={0.4}
-                intensity={3}
+                angle={0.8}
+                penumbra={0.5}
+                intensity={isLampOn ? 20 : 0}
                 castShadow
                 shadow-bias={-0.0001}
                 color="#ffeb3b"
-                distance={30}
+                distance={50}
+              />
+              {/* Omni-directional light for area coverage */}
+              <pointLight
+                position={[0, -2, 0]}
+                intensity={isLampOn ? 5 : 0}
+                distance={20}
+                color="#ffeb3b"
               />
           </group>
         </group>
@@ -216,6 +243,7 @@ export default function Enigma3D({ onClose }) {
         <SecretDocument3D position={[-8, -0.48, 2]} rotation={[0, 0.5, 0]} text="CONFIDENTIAL" />
         <SecretDocument3D position={[9, -0.48, -2]} rotation={[0, -0.3, 0]} text="OPERATION ULTRA" />
         <SecretDocument3D position={[7, -0.48, 5]} rotation={[0, 0.2, 0]} text="TOP SECRET" />
+        <Ashtray3D position={[-5, -0.85, 6]} rotation={[0, 0.5, 0]} />
         
         <ContactShadows position={[0, -0.49, 0]} opacity={0.6} scale={40} blur={2} far={4.5} />
 
