@@ -1,9 +1,11 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment, ContactShadows } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, Environment, ContactShadows, SpotLight } from '@react-three/drei';
 import Rotor3D from './3d/Rotor3D';
 import Key3D from './3d/Key3D';
 import Lamp3D from './3d/Lamp3D';
+import Table3D from './3d/Table3D';
+import SecretDocument3D from './3d/SecretDocument3D';
 import useEnigmaMachine from '../hooks/useEnigmaMachine';
 
 const ROW_1 = 'QWERTZUIO'.split('');
@@ -92,77 +94,137 @@ export default function Enigma3D({ onClose }) {
         Close 3D View
       </button>
 
-      <Canvas shadows>
-        <PerspectiveCamera makeDefault position={[0, 15, 15]} fov={45} />
-        <OrbitControls target={[0, 0, 0]} maxPolarAngle={Math.PI / 2} />
+      <Canvas shadows dpr={[1, 2]}>
+        <PerspectiveCamera makeDefault position={[0, 18, 18]} fov={45} />
+        <OrbitControls 
+          target={[0, 0, 0]} 
+          maxPolarAngle={Math.PI / 2.2} 
+          minDistance={10}
+          maxDistance={40}
+        />
         
-        <ambientLight intensity={0.5} />
-        <spotLight position={[10, 20, 10]} angle={0.3} penumbra={1} intensity={1} castShadow />
-        <Environment preset="city" />
-
-        <group position={[0, 0, -2]}>
-          {/* Rotors */}
-          <group position={[0, 2, -4]}>
-            {[-1, 0, 1].map((offset, i) => (
-              <Rotor3D
-                key={i}
-                position={[offset * 2.5, 0, 0]}
-                type={rotorTypes[i]}
-                rotorPosition={positions[i]}
-                ringSetting={ringSettings[i]}
-                onChangePos={(dir) => adjustPosition(i, dir)}
-              />
-            ))}
-          </group>
-
-          {/* Lampboard */}
-          <group position={[0, 0, 0]}>
-            {[ROW_1, ROW_2, ROW_3].map((row, rowIndex) => (
-              <group key={rowIndex} position={[0, 0, rowIndex * ROW_SPACING]}>
-                {row.map((char, charIndex) => {
-                  const x = (charIndex - (row.length - 1) / 2) * KEY_SPACING + getRowOffset(rowIndex) - (rowIndex === 2 ? 1 : 0); // Adjust centering
-                  return (
-                    <Lamp3D
-                      key={char}
-                      char={char}
-                      position={[x, 0, 0]}
-                      active={litLamp === char}
-                    />
-                  );
-                })}
-              </group>
-            ))}
-          </group>
-
-          {/* Keyboard */}
-          <group position={[0, 0, 6]}>
-             {[ROW_1, ROW_2, ROW_3].map((row, rowIndex) => (
-              <group key={rowIndex} position={[0, 0, rowIndex * ROW_SPACING]}>
-                {row.map((char, charIndex) => {
-                  const x = (charIndex - (row.length - 1) / 2) * KEY_SPACING + getRowOffset(rowIndex) - (rowIndex === 2 ? 1 : 0);
-                  return (
-                    <Key3D
-                      key={char}
-                      char={char}
-                      position={[x, 0, 0]}
-                      active={pressedKey === char}
-                      onDown={handleKeyPress}
-                      onUp={handleKeyRelease}
-                    />
-                  );
-                })}
-              </group>
-            ))}
-          </group>
-          
-          {/* Base/Case */}
-          <mesh position={[0, -0.5, 2]} receiveShadow>
-            <boxGeometry args={[14, 1, 16]} />
-            <meshStandardMaterial color="#2a221b" roughness={0.8} />
+        {/* Cinematic Lighting */}
+        <ambientLight intensity={0.2} color="#b3e5fc" />
+        
+        {/* Desk Lamp Model and Light */}
+        <group position={[8, 0, 8]} rotation={[0, -Math.PI / 4, 0]}>
+          {/* Base */}
+          <mesh position={[0, 0.2, 0]} castShadow>
+            <cylinderGeometry args={[1.5, 1.8, 0.4, 32]} />
+            <meshStandardMaterial color="#2c3e50" roughness={0.5} metalness={0.5} />
           </mesh>
+          {/* Stem */}
+          <mesh position={[0, 3, 0]} rotation={[0.2, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.15, 0.15, 6, 16]} />
+            <meshStandardMaterial color="#bdc3c7" roughness={0.2} metalness={0.8} />
+          </mesh>
+          {/* Head/Shade */}
+          <group position={[0, 6, 1.5]} rotation={[0.5, 0, 0]}>
+             <mesh castShadow>
+               <coneGeometry args={[1.5, 2.5, 32, 1, true]} />
+               <meshStandardMaterial color="#2c3e50" side={2} roughness={0.5} metalness={0.5} />
+             </mesh>
+             {/* Bulb */}
+             <mesh position={[0, -0.5, 0]}>
+               <sphereGeometry args={[0.5, 16, 16]} />
+               <meshStandardMaterial emissive="#ffeb3b" emissiveIntensity={2} color="#fff" />
+             </mesh>
+             {/* The actual light source */}
+             <SpotLight
+                position={[0, 0, 0]}
+                target-position={[0, -10, 0]}
+                angle={0.6}
+                penumbra={0.4}
+                intensity={3}
+                castShadow
+                shadow-bias={-0.0001}
+                color="#ffeb3b"
+                distance={30}
+              />
+          </group>
         </group>
+
+        <pointLight position={[-5, 5, -5]} intensity={0.3} color="#ff9800" />
+
+        <group position={[0, 0.5, -2]}>
+          {/* Enigma Machine Case */}
+          <group>
+             {/* Rotors */}
+            <group position={[0, 2, -4]}>
+              {[-1, 0, 1].map((offset, i) => (
+                <Rotor3D
+                  key={i}
+                  position={[offset * 2.5, 0, 0]}
+                  type={rotorTypes[i]}
+                  rotorPosition={positions[i]}
+                  ringSetting={ringSettings[i]}
+                  onChangePos={(dir) => adjustPosition(i, dir)}
+                />
+              ))}
+            </group>
+
+            {/* Lampboard */}
+            <group position={[0, 0, 0]}>
+              {[ROW_1, ROW_2, ROW_3].map((row, rowIndex) => (
+                <group key={rowIndex} position={[0, 0, rowIndex * ROW_SPACING]}>
+                  {row.map((char, charIndex) => {
+                    const x = (charIndex - (row.length - 1) / 2) * KEY_SPACING + getRowOffset(rowIndex) - (rowIndex === 2 ? 1 : 0);
+                    return (
+                      <Lamp3D
+                        key={char}
+                        char={char}
+                        position={[x, 0, 0]}
+                        active={litLamp === char}
+                      />
+                    );
+                  })}
+                </group>
+              ))}
+            </group>
+
+            {/* Keyboard */}
+            <group position={[0, 0, 6]}>
+               {[ROW_1, ROW_2, ROW_3].map((row, rowIndex) => (
+                <group key={rowIndex} position={[0, 0, rowIndex * ROW_SPACING]}>
+                  {row.map((char, charIndex) => {
+                    const x = (charIndex - (row.length - 1) / 2) * KEY_SPACING + getRowOffset(rowIndex) - (rowIndex === 2 ? 1 : 0);
+                    return (
+                      <Key3D
+                        key={char}
+                        char={char}
+                        position={[x, 0, 0]}
+                        active={pressedKey === char}
+                        onDown={handleKeyPress}
+                        onUp={handleKeyRelease}
+                      />
+                    );
+                  })}
+                </group>
+              ))}
+            </group>
+            
+            {/* Base/Case */}
+            <mesh position={[0, -0.5, 2]} receiveShadow>
+              <boxGeometry args={[14, 1, 16]} />
+              <meshStandardMaterial color="#2a221b" roughness={0.7} />
+            </mesh>
+          </group>
+        </group>
+
+        {/* Environment Objects */}
+        <Table3D position={[0, -1, 0]} />
+        <SecretDocument3D position={[-8, -0.48, 2]} rotation={[0, 0.5, 0]} text="CONFIDENTIAL" />
+        <SecretDocument3D position={[9, -0.48, -2]} rotation={[0, -0.3, 0]} text="OPERATION ULTRA" />
+        <SecretDocument3D position={[7, -0.48, 5]} rotation={[0, 0.2, 0]} text="TOP SECRET" />
         
-        <ContactShadows position={[0, -1, 0]} opacity={0.4} scale={20} blur={2} far={4.5} />
+        <ContactShadows position={[0, -0.49, 0]} opacity={0.6} scale={40} blur={2} far={4.5} />
+
+        {/* Post Processing - Temporarily Disabled for Debugging */}
+        {/* <EffectComposer>
+          <Noise opacity={0.15} blendFunction={BlendFunction.OVERLAY} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+          <Bloom luminanceThreshold={1} intensity={0.5} levels={9} mipmapBlur />
+        </EffectComposer> */}
       </Canvas>
       
       <div className="absolute top-4 left-4 z-40">
@@ -185,6 +247,8 @@ export default function Enigma3D({ onClose }) {
           </div>
         </div>
       </div>
+
+      {/* CSS Post-Processing Overlays REMOVED */}
 
       <div className="absolute bottom-4 left-4 text-white/50 text-sm pointer-events-none select-none">
         <p>Click keys to type. Click rotors to rotate.</p>
