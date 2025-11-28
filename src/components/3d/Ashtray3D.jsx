@@ -44,7 +44,7 @@ export default function Ashtray3D({ position, rotation }) {
       </mesh>
 
       {/* Cigar */}
-      <group position={[0, 0.25, 0]} rotation={[0, 0, 0.1]}>
+      <group position={[0.7, 0.4, 0]} rotation={[0, Math.PI, 0.1]}>
         <mesh castShadow position={[0.4, 0, 0]} rotation={[0, 0, 1.57]}>
             <cylinderGeometry args={[0.08, 0.08, 1.2, 16]} />
             <meshStandardMaterial color="#5d4037" roughness={0.8} />
@@ -61,7 +61,7 @@ export default function Ashtray3D({ position, rotation }) {
         </mesh>
         
         {/* Light from Cigar Tip */}
-        <pointLight position={[1.1, 0, 0]} intensity={1} distance={3} color="#ff5722" />
+        <pointLight position={[1.1, 0, 0]} intensity={10} distance={10} color="#ff5722" />
 
         {/* Smoke */}
         <group position={[1.0, 0.1, 0]}>

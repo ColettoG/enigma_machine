@@ -252,7 +252,7 @@ export default function Enigma3D({ onClose }) {
         <SecretDocument3D position={[-8, -0.48, 2]} rotation={[0, 0.5, 0]} text="CONFIDENTIAL" />
         <SecretDocument3D position={[9, -0.48, -2]} rotation={[0, -0.3, 0]} text="OPERATION ULTRA" />
         <SecretDocument3D position={[7, -0.48, 5]} rotation={[0, 0.2, 0]} text="TOP SECRET" />
-        <Ashtray3D position={[-5, -0.85, 6]} rotation={[0, 0.5, 0]} />
+        <Ashtray3D position={[10, -0.85, 4]} rotation={[0, 0.5, 0]} />
         
         <ContactShadows position={[0, -0.49, 0]} opacity={0.6} scale={40} blur={2} far={4.5} />
 
