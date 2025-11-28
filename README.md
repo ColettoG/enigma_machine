@@ -55,10 +55,11 @@ Abra seu navegador e acesse a URL exibida no terminal (geralmente `http://localh
 - Rotação dos rotores e teclas/lâmpadas reagindo à digitação.
 - Documentos e objetos em 3D compondo o ambiente.
 
-![Visão 3D inicial](assets/img1.jpeg)
-![Luz acesa e mesa](assets/img2.jpeg)
-![Detalhe dos rotores e teclado](assets/img3.jpeg)
-![Cena completa com iluminação](assets/img4.jpeg)
+![v1 2d](assets/img1.jpeg)
+![v1 2d 2](assets/img2.jpeg)
+![v1 plugboard](assets/img5.jpeg)
+![v2 2d](assets/img3.jpeg)
+![Tela 3d](assets/img4.jpeg)
 
 ## Fluxo da Aplicação
 
@@ -95,12 +96,3 @@ A aplicação também oferece duas visualizações: uma interface 2D tradicional
 - `npm run build` - Cria uma versão otimizada para produção
 - `npm run preview` - Visualiza a versão de produção localmente (execute após `npm run build`)
 
-
-## Screenshots
-
-![enigma_1](./assets/img1.jpeg)
-![enigma_2](./assets/img2.jpeg)
-![enigma_3](./assets/img3.jpeg)
-![enigma_4](./assets/img4.jpeg)
-
-```
