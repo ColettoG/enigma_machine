@@ -106,10 +106,19 @@ export default function Enigma3D({ onClose }) {
         />
         
         {/* Cinematic Lighting */}
-        <ambientLight intensity={0.2} color="#b3e5fc" />
+        <ambientLight intensity={isLampOn ? 0.5 : 0.2} color="#b3e5fc" />
         
         {/* Desk Lamp Model and Light */}
-        <group position={[8, 0, 8]} rotation={[0, -Math.PI / 4, 0]}>
+        <group 
+          position={[-8, 0, -2]} 
+          rotation={[0, Math.PI / 4, 0]}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsLampOn(!isLampOn);
+          }}
+          onPointerOver={() => document.body.style.cursor = 'pointer'}
+          onPointerOut={() => document.body.style.cursor = 'auto'}
+        >
           {/* Base */}
           <mesh position={[0, 0.2, 0]} castShadow>
             <cylinderGeometry args={[1.5, 1.8, 0.4, 32]} />
