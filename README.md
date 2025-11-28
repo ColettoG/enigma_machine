@@ -48,6 +48,18 @@ Abra seu navegador e acesse a URL exibida no terminal (geralmente `http://localh
 - **Plugboard**: Clique nos soquetes para fazer conexões no plugboard
 - **Criptografar/Descriptografar**: Digite no teclado ou clique nas teclas na tela para criptografar ou descriptografar texto
 
+## Interface (Screenshots)
+
+- Tela inicial com visão 3D da mesa e da Enigma.
+- Lampada de mesa interativa que liga/desliga a iluminação da cena.
+- Rotação dos rotores e teclas/lâmpadas reagindo à digitação.
+- Documentos e objetos em 3D compondo o ambiente.
+
+![Visão 3D inicial](assets/img1.jpeg)
+![Luz acesa e mesa](assets/img2.jpeg)
+![Detalhe dos rotores e teclado](assets/img3.jpeg)
+![Cena completa com iluminação](assets/img4.jpeg)
+
 ## Fluxo da Aplicação
 
 O fluxo de funcionamento da aplicação segue o processo histórico da máquina Enigma M3:
@@ -82,5 +94,13 @@ A aplicação também oferece duas visualizações: uma interface 2D tradicional
 - `npm run dev` - Inicia o servidor de desenvolvimento
 - `npm run build` - Cria uma versão otimizada para produção
 - `npm run preview` - Visualiza a versão de produção localmente (execute após `npm run build`)
+
+
+## Screenshots
+
+![enigma_1](./assets/img1.jpeg)
+![enigma_2](./assets/img2.jpeg)
+![enigma_3](./assets/img3.jpeg)
+![enigma_4](./assets/img4.jpeg)
 
 ```
