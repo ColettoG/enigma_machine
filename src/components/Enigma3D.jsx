@@ -173,14 +173,26 @@ export default function Enigma3D({ onClose }) {
               {/* Omni-directional light for area coverage */}
               <pointLight
                 position={[0, -2, 0]}
-                intensity={isLampOn ? 5 : 0}
-                distance={20}
+                intensity={isLampOn ? 50 : 0}
+                distance={50}
                 color="#ffeb3b"
               />
           </group>
         </group>
 
         <pointLight position={[-5, 5, -5]} intensity={0.3} color="#ff9800" />
+        
+        {/* Dedicated Spotlight for Machine */}
+        <SpotLight
+          position={[-8, 6, -0.5]}
+          target-position={[0, 0, -2]}
+          angle={0.5}
+          penumbra={0.5}
+          intensity={isLampOn ? 50 : 0}
+          castShadow
+          color="#ffeb3b"
+          distance={50}
+        />
 
         <group position={[0, 0.5, -2]}>
           {/* Enigma Machine Case */}
